@@ -10,7 +10,6 @@
 use strict;
 use Data::Dumper;
 use Getopt::Long;
-my $options;
 
 #### Settings
 my $repo_name = "example";
@@ -19,7 +18,7 @@ my $repo_url = "ssh://user\@host/home/username/$repo_name";
 
 # Directories to backup
 my @include = (
-	"/etc";
+	"/etc"
 );
 
 # Exclude the following from included
@@ -37,7 +36,7 @@ my $logfile = $logdir."/borgvik.log"; # Log file
 my $debug = 0;
 
 ########### Do not edit below ###########
-my ($o_verb, $o_help, $o_test, $o_debug, $o_run, $o_create, $o_list, $o_name);
+my ($o_verb, $o_help, $o_test, $o_debug, $o_run, $o_create, $o_list, $o_name, $o_info, $o_restore);
 
 DirExists($logdir);
 
@@ -69,10 +68,12 @@ sub check_options {
 		'r'     => \$o_run,            'test'	=> \$o_run,
 		'c'     => \$o_create,            'create'	=> \$o_create,
 		'l'     => \$o_list,            'list'	=> \$o_list,
+		'i'     => \$o_info,            'info'	=> \$o_info,
+		'r'     => \$o_restore,            'info'	=> \$o_restore,
 		'n:s'     => \$o_name,
 	);
 
-	if(defined ($o_help) || (!defined($o_run) && !defined($o_create) && !defined($o_list))){
+	if(defined ($o_help) || (!defined($o_run) && !defined($o_create) && !defined($o_list)) && !defined($o_info) && !defined($o_restore)){
 		help();
 		exit 1;
 	}
@@ -100,6 +101,14 @@ sub check_options {
 	if(defined($o_list)){
 		List();		
 	}
+
+	if(defined($o_info)){
+		Info();		
+	}
+
+	if(defined($o_restore)){
+		Restore();		
+	}
 }
 
 # Help
@@ -110,6 +119,10 @@ sub help() {
         print extra debugging information
 -t, --test
         Do not execute, only dry run
+-i, --info
+        Display information
+-r, --restore
+        Restore examples
 -r, --run
         Run backup
 -c, --create
@@ -201,6 +214,21 @@ sub List(){
 		print "List files in repo\n";
 		print "$0 -l -n $repo_name--xx\n";
 	} 
+}
+
+sub Info(){
+	print "Repo: ".$repo_url."::\n";
+}
+
+sub Restore(){
+	print "Restore example\n";
+	print "1. Get list of archive\n";
+	print "$0 -l\n\n";
+	print "2. Get list of archive contents\n";
+	print "$0 -l -n xxx\n\n";
+	print "3. Restore manually\n";
+	print "borg extract ".$repo_url."::".$repo_name."--xxx directory/file\n";
+	print "\n";
 }
 
 sub RunBackup(){
