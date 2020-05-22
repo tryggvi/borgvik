@@ -65,7 +65,7 @@ sub check_options {
 		'h'     => \$o_help,            'help'	=> \$o_help,
 		'd'     => \$o_debug,            'debug'	=> \$o_debug,
 		't'     => \$o_test,            'test'	=> \$o_test,
-		'r'     => \$o_run,            'test'	=> \$o_run,
+		'r'     => \$o_run,            'run'	=> \$o_run,
 		'c'     => \$o_create,            'create'	=> \$o_create,
 		'l'     => \$o_list,            'list'	=> \$o_list,
 		'i'     => \$o_info,            'info'	=> \$o_info,
