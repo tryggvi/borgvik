@@ -69,7 +69,7 @@ sub check_options {
 		'c'     => \$o_create,            'create'	=> \$o_create,
 		'l'     => \$o_list,            'list'	=> \$o_list,
 		'i'     => \$o_info,            'info'	=> \$o_info,
-		'r'     => \$o_restore,            'info'	=> \$o_restore,
+		'e'     => \$o_restore,            'restore'	=> \$o_restore,
 		'n:s'     => \$o_name,
 	);
 
