@@ -31,6 +31,7 @@ my @exclude = (
 # Logging
 my $logdir = "/var/log/borgvik";
 my $logfile = $logdir."/borgvik.log"; # Log file
+my $logfile2 = $logdir."/borgvik-out.log"; # Log file
 
 # Misc
 my $debug = 0;
@@ -247,8 +248,7 @@ sub RunBackup(){
 			open(CMD, "$cmd|");
 			close(CMD);
 		} else {
-			open(CMD, "$cmd 2>&1 /dev/null|");
-			close(CMD);
+			system("$cmd 2>> $logfile2");
 		}
 		printlog("Finished");
 	}
