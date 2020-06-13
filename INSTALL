@@ -1,0 +1,5 @@
+Borgvik requires
+Config::Simple
+
+# Red Hat based OS
+yum install perl-Config-Simple
