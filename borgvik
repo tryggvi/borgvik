@@ -1,0 +1,258 @@
+#!/usr/bin/perl
+# borgvik backup v1.0
+#
+# GPLv2
+#
+#	https://github.com/tryggvi/borgvik
+#
+# Author: Tryggvi Farestveit <trygvi@linux.is>
+#############################
+use strict;
+use Data::Dumper;
+use Getopt::Long;
+
+#### Settings
+my $repo_name = "example";
+my $repo_secret = "changeme";
+my $repo_url = "ssh://user\@host/home/username/$repo_name";
+
+# Directories to backup
+my @include = (
+	"/etc"
+);
+
+# Exclude the following from included
+my @exclude = (
+	"/proc",
+	"/sys",
+	"/dev",
+);
+
+# Logging
+my $logdir = "/var/log/borgvik";
+my $logfile = $logdir."/borgvik.log"; # Log file
+my $logfile2 = $logdir."/borgvik-out.log"; # Log file
+
+# Misc
+my $debug = 0;
+
+########### Do not edit below ###########
+my ($o_verb, $o_help, $o_test, $o_debug, $o_run, $o_create, $o_list, $o_name, $o_info, $o_restore);
+
+DirExists($logdir);
+
+$ENV{'BORG_PASSPHRASE'} = $repo_secret;
+
+# Logging
+sub printlog($){
+	my($text) = @_;
+	my ($sec,$min,$hour,$day,$month,$year) = gettime();
+	my $out = "$year-$month-$day $hour:$min:$sec $text";
+
+	open(LOG, ">>$logfile");
+	print LOG $out."\n";
+	close(LOG);
+
+	if($o_verb){
+		print $out."\n";
+	} 
+}
+
+# Input validation
+sub check_options {
+	Getopt::Long::Configure ("bundling");
+	GetOptions(
+		'v'     => \$o_verb,            'verbose'	=> \$o_verb,
+		'h'     => \$o_help,            'help'	=> \$o_help,
+		'd'     => \$o_debug,            'debug'	=> \$o_debug,
+		't'     => \$o_test,            'test'	=> \$o_test,
+		'r'     => \$o_run,            'run'	=> \$o_run,
+		'c'     => \$o_create,            'create'	=> \$o_create,
+		'l'     => \$o_list,            'list'	=> \$o_list,
+		'i'     => \$o_info,            'info'	=> \$o_info,
+		'e'     => \$o_restore,            'restore'	=> \$o_restore,
+		'n:s'     => \$o_name,
+	);
+
+	if(defined ($o_help) || (!defined($o_run) && !defined($o_create) && !defined($o_list)) && !defined($o_info) && !defined($o_restore)){
+		help();
+		exit 1;
+	}
+
+	if(defined($o_test)){
+		$o_test=1;
+		print "Dry run\n";
+	}
+
+	if(defined($o_debug)){
+		print "export BORG_PASSPHRASE='$repo_secret'\n";
+		$debug=1;
+		$o_test=1;
+	}
+
+	if(defined($o_run)){
+		# Run backup
+		RunBackup();
+	}
+
+	if(defined($o_create)){
+		CreateRepo();		
+	}
+
+	if(defined($o_list)){
+		List();		
+	}
+
+	if(defined($o_info)){
+		Info();		
+	}
+
+	if(defined($o_restore)){
+		Restore();		
+	}
+}
+
+# Help
+sub help() {
+	print "$0\n";
+        print <<EOT;
+-v, --verbose
+        print extra debugging information
+-t, --test
+        Do not execute, only dry run
+-i, --info
+        Display information
+-r, --restore
+        Restore examples
+-r, --run
+        Run backup
+-c, --create
+	Create initial repo (first time)
+-h, --help
+	print this help message
+EOT
+}
+
+sub print_usage() {
+        print "Usage: $0 [-v] ]\n";
+}
+
+# If dir does not exist, create it.
+sub DirExists($){
+	my ($dir) = @_;
+	if(!-e $dir){
+		printlog("Creating $dir");
+		mkdir $dir, 0700;
+	}
+}
+
+# Convert array to exclude string
+sub ArrayToExclude(@){
+	my (@dirs) = @_;
+
+	my $out;
+	foreach(@dirs){
+		$out .= "--exclude=\"$_\" ";
+	}
+	return $out;
+}
+
+# Convert array to include string
+sub ArrayToInclude(@){
+	my (@dirs) = @_;
+
+	my $out;
+	foreach(@dirs){
+		$out .= "$_ ";
+
+	}
+	return $out;
+}
+
+# Get current time
+sub gettime(){
+	my $input = time();
+	my ($sec,$min,$hour,$day,$month,$year) = (localtime($input))[0,1,2,3,4,5];
+	$year = $year +1900;
+	$month = $month +1 ;
+	if($month < 10){
+		$month = "0$month";
+	}
+
+	if($day < 10){
+		$day = "0$day";
+	}
+
+	if($hour < 10){
+		$hour = "0$hour";
+	}
+
+	if($min < 10){
+		$min = "0$min";
+	}
+
+	return ($sec,$min,$hour,$day,$month,$year);
+}
+
+sub CreateRepo(){
+	my $cmd = "borg init --encryption=repokey-blake2 ".$repo_url;
+	print "$cmd\n" if $o_test;
+	if(!$o_test){
+		printlog("Creating repo");
+		open(CMD, "$cmd|");
+		close(CMD);
+	}
+}
+
+sub List(){
+	if($o_name){
+		my $cmd = "borg list  ".$repo_url."::".$o_name;
+		system($cmd);
+	} else {
+		my $cmd = "borg list  ".$repo_url;
+		system($cmd);
+
+		print "List files in repo\n";
+		print "$0 -l -n $repo_name--xx\n";
+	} 
+}
+
+sub Info(){
+	print "Repo: ".$repo_url."::\n";
+}
+
+sub Restore(){
+	print "Restore example\n";
+	print "1. Get list of archive\n";
+	print "$0 -l\n\n";
+	print "2. Get list of archive contents\n";
+	print "$0 -l -n xxx\n\n";
+	print "3. Restore manually\n";
+	print "borg extract ".$repo_url."::".$repo_name."--xxx directory/file\n";
+	print "\n";
+}
+
+sub RunBackup(){
+	# Logging starts
+	my $bdir = ArrayToInclude(@include);
+
+	my ($sec,$min,$hour,$day,$month,$year) = gettime();
+	my $backup_suffix = "$year-$month-$day-$hour-$min";
+
+	my $cmd = "borg create --verbose --filter AME --list --stats --show-rc --compression lz4 --exclude-caches ".$repo_url."::".$repo_name."--{now} $bdir";
+	print "$cmd\n" if $o_test;
+
+	if(!$o_test){
+		printlog("Running backup");
+		if($o_verb){
+			open(CMD, "$cmd|");
+			close(CMD);
+		} else {
+			system("$cmd 2>> $logfile2");
+		}
+		printlog("Finished");
+	}
+}
+
+### Main
+check_options();

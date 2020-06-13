@@ -1,0 +1,19 @@
+#### Settings
+repo_name = "example"
+repo_secret = "xxyy"
+repo_url = "ssh://user@host/tmp/test"
+
+# Directories and files to backup
+include = "/etc, /var/tmp"
+
+# Exclude the following from included
+exclude = "/etc/test, /tmp/test"
+
+# Logging
+logdir = "/var/log/borgvik"
+logfile = "borgvik.log"
+logfile2 = "borgvik-out.log"
+
+# Misc
+my $debug = 0;
+
