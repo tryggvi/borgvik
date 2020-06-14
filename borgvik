@@ -45,7 +45,7 @@ sub printlog($){
 	my ($sec,$min,$hour,$day,$month,$year) = gettime();
 	my $out = "$year-$month-$day $hour:$min:$sec $text";
 
-	if(!$logfile || $logdir){
+	if(!$logfile || !$logdir){
 		print "Logfile or logdir missing\n" if $o_verb;
 	} else {
 		my $l = $logdir."/".$logfile;
