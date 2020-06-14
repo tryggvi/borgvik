@@ -45,9 +45,14 @@ sub printlog($){
 	my ($sec,$min,$hour,$day,$month,$year) = gettime();
 	my $out = "$year-$month-$day $hour:$min:$sec $text";
 
-	open(LOG, ">>$logfile");
-	print LOG $out."\n";
-	close(LOG);
+	if(!$logfile || $logdir){
+		print "Logfile or logdir missing\n" if $o_verb;
+	} else {
+		my $l = $logdir."/".$logfile;
+		open(LOG, ">>$l");
+		print LOG $out."\n";
+		close(LOG);
+	}
 
 	if($o_verb){
 		print $out."\n";
@@ -276,7 +281,8 @@ sub RunBackup(){
 			open(CMD, "$cmd|");
 			close(CMD);
 		} else {
-			system("$cmd 2>> $logfile2");
+			my $l = $logdir."/".$logfile2;
+			system("$cmd 2>> $l");
 		}
 		printlog("Finished");
 	}
