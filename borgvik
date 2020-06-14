@@ -18,7 +18,6 @@ my ($o_verb, $o_help, $o_test, $o_debug, $o_run, $o_create, $o_list, $o_name, $o
 # Config file options
 my ($repo_name, $repo_secret, $repo_url, $include, $exclude, $logfile, $logfile2, $logdir, $debug);
 
-
 # Get information from config file
 sub ReadConfig(){
 	my $cfg = new Config::Simple($o_config);
@@ -83,8 +82,14 @@ sub check_options {
 
 
 	if(!defined($o_config)){
-		print "Configuration file missing. Use $0 --config=file\n";
-		exit;
+		if(-e "borgvik.conf"){
+			printlog("Found config: borgvik.conf in local direcotry");
+			$o_config = "borgvik.conf";
+			ReadConfig();
+		} else {
+			print "Configuration file missing. Use $0 --config=file\n";
+			exit;
+		}
 	} else {
 		ReadConfig();
 	}
