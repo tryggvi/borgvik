@@ -1,3 +1,3 @@
 # cp -f borgvik.crond /etc/cron.d/borgvik ; chmod 644 /etc/cron.d/borgvik
-0 01 * * * root /opt/borgvik/borgvik -b > /dev/null 2>&1
+0 01 * * * root /root/borgvik/borgvik -b --config=/root/borgvik/borgvik.conf > /dev/null 2>&1
 
